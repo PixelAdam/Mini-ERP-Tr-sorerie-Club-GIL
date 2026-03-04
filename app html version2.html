@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Club GIL — Mini ERP Trésorerie v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0f14;--surface:#151821;--surface2:#1c2130;--border:#252b3b;--accent:#4f8ef7;--accent2:#22d3a5;--danger:#f7614f;--warn:#f7c14f;--text:#e8eaf2;--muted:#6b7394;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;z-index:100;overflow-y:auto;}
+.logo{padding:0 20px 24px;border-bottom:1px solid var(--border);}
+.logo-badge{display:inline-block;background:var(--accent);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;letter-spacing:1px;padding:3px 10px;border-radius:6px;margin-bottom:8px;}
+.logo h1{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;line-height:1.3;}
+.logo p{font-size:11px;color:var(--muted);margin-top:2px;}
+.nav{padding:16px 0;flex:1;}
+.nav-section{padding:0 20px;margin:16px 0 6px;font-size:10px;letter-spacing:1.5px;font-weight:600;color:var(--muted);text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;font-size:13px;color:var(--muted);transition:all .2s;border-left:2px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--surface2);}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(79,142,247,.08);}
+.nav-icon{font-size:15px;width:18px;text-align:center;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);}
+.sidebar-footer strong{color:var(--text);display:block;font-size:12px;}
+.main{margin-left:230px;padding:28px 32px;min-height:100vh;}
+.page{display:none;}
+.page.active{display:block;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;}
+.page-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;}
+.page-sub{color:var(--muted);font-size:13px;margin-top:3px;}
+.header-actions{display:flex;gap:8px;align-items:center;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;border:none;transition:all .2s;font-family:'Instrument Sans',sans-serif;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#3a7df5;transform:translateY(-1px);}
+.btn-outline{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger{background:rgba(247,97,79,.12);color:var(--danger);border:1px solid rgba(247,97,79,.25);}
+.btn-danger:hover{background:rgba(247,97,79,.22);}
+.btn-warn{background:rgba(247,193,79,.12);color:var(--warn);border:1px solid rgba(247,193,79,.25);}
+.btn-warn:hover{background:rgba(247,193,79,.22);}
+.btn-success{background:rgba(34,211,165,.12);color:var(--accent2);border:1px solid rgba(34,211,165,.25);}
+.btn-success:hover{background:rgba(34,211,165,.22);}
+.btn-sm{padding:4px 10px;font-size:12px;}
+.kpi-grid{display:grid;gap:14px;margin-bottom:24px;}
+.kpi-5{grid-template-columns:repeat(5,1fr);}
+.kpi-4{grid-template-columns:repeat(4,1fr);}
+.kpi-3{grid-template-columns:repeat(3,1fr);}
+.kpi-2{grid-template-columns:repeat(2,1fr);}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:transform .2s;}
+.kpi-card:hover{transform:translateY(-2px);}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi-card.blue::before{background:var(--accent);}
+.kpi-card.green::before{background:var(--accent2);}
+.kpi-card.red::before{background:var(--danger);}
+.kpi-card.yellow::before{background:var(--warn);}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin:6px 0 3px;}
+.kpi-delta{font-size:12px;color:var(--muted);}
+.kpi-delta.up{color:var(--accent2);}
+.kpi-delta.down{color:var(--danger);}
+.kpi-icon{position:absolute;right:14px;top:14px;font-size:24px;opacity:.12;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px;}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:.5px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.grid-32{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600;}
+td{padding:10px 12px;font-size:13px;border-bottom:1px solid rgba(37,43,59,.5);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(28,33,48,.6);}
+.mono{font-family:'DM Mono',monospace;font-size:12px;}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-paid{background:rgba(34,211,165,.12);color:var(--accent2);}
+.badge-pending{background:rgba(247,193,79,.12);color:var(--warn);}
+.badge-income{background:rgba(79,142,247,.12);color:var(--accent);}
+.badge-expense{background:rgba(247,97,79,.12);color:var(--danger);}
+.badge-confirmed{background:rgba(34,211,165,.12);color:var(--accent2);}
+.badge-negociation{background:rgba(247,193,79,.12);color:var(--warn);}
+.tag{display:inline-block;padding:2px 9px;border-radius:4px;font-size:11px;font-weight:600;}
+.tag-tresorerie{background:rgba(247,193,79,.15);color:#f7c14f;}
+.tag-formation{background:rgba(34,211,165,.15);color:#22d3a5;}
+.tag-sponsoring{background:rgba(247,97,79,.15);color:#f7614f;}
+.tag-evenement{background:rgba(79,142,247,.15);color:#4f8ef7;}
+.tag-projet{background:rgba(160,100,250,.15);color:#a064fa;}
+.tag-design{background:rgba(240,120,200,.15);color:#f078c8;}
+.tag-media{background:rgba(100,200,240,.15);color:#64c8f0;}
+.tag-partenariat{background:rgba(255,160,80,.15);color:#ffa050;}
+.tag-relation{background:rgba(80,220,140,.15);color:#50dc8c;}
+.tag-business{background:rgba(220,180,255,.15);color:#dcb4ff;}
+.search-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.search-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:13px;font-family:'Instrument Sans',sans-serif;}
+.search-input:focus{outline:none;border-color:var(--accent);}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;color:var(--muted);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'Instrument Sans',sans-serif;transition:border-color .2s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--accent);}
+.form-select option{background:var(--surface2);}
+.form-textarea{resize:vertical;min-height:70px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.form-section{background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:14px;}
+.form-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);margin-bottom:12px;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;width:600px;max-width:96vw;max-height:92vh;overflow-y:auto;animation:slideUp .25s ease;}
+.modal-lg{width:760px;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{cursor:pointer;color:var(--muted);font-size:22px;line-height:1;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+.confirm-box{background:var(--surface);border:1px solid rgba(247,97,79,.4);border-radius:14px;padding:28px;width:380px;text-align:center;animation:slideUp .2s ease;}
+.confirm-box h3{font-family:'Syne',sans-serif;font-size:17px;margin-bottom:10px;}
+.confirm-box p{color:var(--muted);font-size:13px;margin-bottom:22px;}
+.confirm-actions{display:flex;gap:10px;justify-content:center;}
+.progress-wrap{margin-bottom:14px;}
+.progress-header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
+.progress-bar{height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:99px;transition:width .6s ease;}
+.chart-wrap{display:flex;align-items:flex-end;gap:8px;height:130px;}
+.chart-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+.bar-group{display:flex;gap:3px;align-items:flex-end;height:110px;}
+.bar{width:14px;border-radius:4px 4px 0 0;transition:height .5s ease;cursor:pointer;position:relative;}
+.bar:hover::after{content:attr(data-val);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--border);color:var(--text);font-size:10px;padding:2px 6px;border-radius:4px;white-space:nowrap;z-index:10;}
+.bar.income{background:var(--accent);}
+.bar.expense{background:var(--danger);}
+.chart-legend{display:flex;gap:14px;margin-top:10px;}
+.legend-dot{width:8px;height:8px;border-radius:50%;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);}
+.donut-wrap{display:flex;align-items:center;gap:20px;}
+svg.donut{transform:rotate(-90deg);}
+.donut-stat{margin-bottom:12px;}
+.donut-stat-label{font-size:11px;color:var(--muted);}
+.donut-stat-val{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;}
+.event-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;transition:border-color .2s;}
+.event-card:hover{border-color:var(--accent);}
+.event-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.event-card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+.event-card-date{font-size:11px;color:var(--muted);margin-top:2px;}
+.event-budget-total{font-family:'DM Mono',monospace;font-size:15px;color:var(--warn);font-weight:500;}
+.event-postes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.poste-tag{background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.2);border-radius:6px;padding:4px 10px;font-size:12px;}
+.poste-tag span{color:var(--muted);font-size:11px;}
+.event-actions{display:flex;gap:6px;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;z-index:9999;animation:slideUp .3s ease;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.toast.success{border-color:rgba(34,211,165,.4);color:var(--accent2);}
+.toast.danger{border-color:rgba(247,97,79,.4);color:var(--danger);}
+.tabs{display:flex;gap:2px;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:20px;}
+.tab-btn{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;border-radius:7px;color:var(--muted);transition:all .2s;}
+.tab-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.cf-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px;}
+.cf-card{background:var(--surface2);border-radius:10px;padding:14px;text-align:center;}
+.cf-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.cf-val{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;margin-top:5px;}
+/* Postes libres */
+.poste-libre-item{display:grid;grid-template-columns:2fr 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(37,43,59,.5);}
+.poste-libre-item:last-child{border-bottom:none;}
+.poste-libre-del{cursor:pointer;color:var(--danger);font-size:18px;padding:0 4px;line-height:1;}
+.poste-add-row{display:grid;grid-template-columns:2fr 1fr auto;gap:8px;align-items:flex-end;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(79,142,247,.2);}
+/* Historique */
+.hist-month-block{margin-bottom:28px;}
+.hist-month-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border);}
+.hist-month-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;}
+.hist-month-badges{display:flex;gap:8px;align-items:center;}
+.hist-net{font-family:'DM Mono',monospace;font-size:13px;font-weight:600;}
+.hist-entry{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface2);border-radius:10px;margin-bottom:7px;border-left:3px solid transparent;transition:border-color .2s;}
+.hist-entry:hover{border-left-color:var(--accent);}
+.hist-entry.income-entry{border-left-color:rgba(34,211,165,.4);}
+.hist-entry.expense-entry{border-left-color:rgba(247,97,79,.4);}
+.hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.hist-dot.income{background:var(--accent2);}
+.hist-dot.expense{background:var(--danger);}
+.hist-info{flex:1;}
+.hist-desc{font-size:13px;font-weight:600;}
+.hist-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.hist-amt{font-family:'DM Mono',monospace;font-size:13px;font-weight:600;}
+.hist-filter-row{display:flex;gap:8px;margin-bottom:20px;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--surface);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
+@media print{
+  .sidebar,.header-actions,.btn,.event-actions,.modal-overlay{display:none!important;}
+  .main{margin-left:0!important;padding:10px!important;}
+  body{background:#fff!important;color:#000!important;}
+  .card,.kpi-card,.event-card{border:1px solid #ccc!important;background:#fff!important;break-inside:avoid;}
+  .page{display:block!important;}
+  .page:not(.active){display:none!important;}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-badge">GIL</div>
+    <h1>Mini ERP<br>Trésorerie</h1>
+    <p>Club GIL · v3.1</p>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Vue Globale</div>
+    <div class="nav-item active" data-page="dashboard"><span class="nav-icon">◈</span> Tableau de Bord</div>
+    <div class="nav-section">Modules</div>
+    <div class="nav-item" data-page="membres"><span class="nav-icon">◎</span> Membres & Cotisations</div>
+    <div class="nav-item" data-page="budget"><span class="nav-icon">◇</span> Budget & Événements</div>
+    <div class="nav-item" data-page="transactions"><span class="nav-icon">⇄</span> Dépenses & Flux</div>
+    <div class="nav-item" data-page="historique"><span class="nav-icon">📅</span> Historique Mensuel</div>
+    <div class="nav-section">Partenaires</div>
+    <div class="nav-item" data-page="sponsors"><span class="nav-icon">◉</span> Sponsors</div>
+  </div>
+  <div class="sidebar-footer"><strong>13 Février 2026</strong>Session de lancement</div>
+</nav>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div><div class="page-title">Tableau de Bord</div><div class="page-sub">Vue globale — Trésorerie Club GIL · Fév 2026</div></div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="exportCSV('all')">⬇ Exporter CSV</button>
+      <button class="btn btn-outline" onclick="exportPrint()">🖨 Imprimer</button>
+    </div>
+  </div>
+  <div style="background:linear-gradient(135deg,rgba(79,142,247,.18),rgba(34,211,165,.1));border:1px solid rgba(79,142,247,.35);border-radius:16px;padding:22px 30px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:6px">💰 Solde Net de Trésorerie</div>
+      <div style="font-family:'Syne',sans-serif;font-size:40px;font-weight:800;" id="db-solde-big">0 DH</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:5px">Revenus totaux — Dépenses totales</div>
+    </div>
+    <div style="display:flex;gap:28px;">
+      <div style="text-align:center;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px">↑ Total Revenus</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--accent2)" id="db-rev-total">0 DH</div></div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div style="text-align:center;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px">↓ Total Dépenses</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--danger)" id="db-dep-total">0 DH</div></div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div style="text-align:center;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px">Taux Cotisation</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--warn)" id="db-rate">0%</div></div>
+    </div>
+  </div>
+  <div class="kpi-grid kpi-5" style="margin-bottom:20px">
+    <div class="kpi-card blue"><div class="kpi-icon">◎</div><div class="kpi-label">Membres Actifs</div><div class="kpi-value" style="color:var(--accent)" id="db-membres">0</div><div class="kpi-delta">Total inscrits</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">✓</div><div class="kpi-label">Cotisations Reçues</div><div class="kpi-value" style="color:var(--accent2)" id="db-cotises-nb">0</div><div class="kpi-delta up">Membres cotisés</div></div>
+    <div class="kpi-card yellow"><div class="kpi-icon">⏳</div><div class="kpi-label">En Attente</div><div class="kpi-value" style="color:var(--warn)" id="db-pending-nb">0</div><div class="kpi-delta down">Non cotisés</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">↑</div><div class="kpi-label">Revenus ce mois</div><div class="kpi-value" style="color:var(--accent2);font-size:18px" id="db-revenus">0</div><div class="kpi-delta up">↑ Entrées</div></div>
+    <div class="kpi-card red"><div class="kpi-icon">↓</div><div class="kpi-label">Dépenses ce mois</div><div class="kpi-value" style="color:var(--danger);font-size:18px" id="db-depenses">0</div><div class="kpi-delta down">↓ Sorties</div></div>
+  </div>
+  <div class="grid-32">
+    <div class="card">
+      <div class="card-title">Revenus vs Dépenses — 6 Mois
+        <div class="chart-legend"><div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Revenus</div><div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div>Dépenses</div></div>
+      </div>
+      <div class="chart-wrap" id="cashflow-chart"></div>
+      <div style="display:flex;justify-content:space-around;margin-top:6px;"><span style="font-size:10px;color:var(--muted)">Sep</span><span style="font-size:10px;color:var(--muted)">Oct</span><span style="font-size:10px;color:var(--muted)">Nov</span><span style="font-size:10px;color:var(--muted)">Déc</span><span style="font-size:10px;color:var(--muted)">Jan</span><span style="font-size:10px;color:var(--muted)">Fév</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Cotisations</div>
+      <div class="donut-wrap">
+        <svg class="donut" width="90" height="90" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--surface2)" stroke-width="12"/>
+          <circle id="donut-arc-paid" cx="50" cy="50" r="38" fill="none" stroke="var(--accent2)" stroke-width="12" stroke-linecap="round"/>
+          <circle id="donut-arc-pend" cx="50" cy="50" r="38" fill="none" stroke="var(--danger)" stroke-width="12" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div class="donut-stat"><div class="donut-stat-label">✓ Cotisé</div><div class="donut-stat-val" style="color:var(--accent2)" id="db-d-paid">0</div></div>
+          <div class="donut-stat"><div class="donut-stat-label">⏳ Attente</div><div class="donut-stat-val" style="color:var(--danger)" id="db-d-pend">0</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Dernières Transactions</div>
+      <div class="table-wrap"><table id="db-tx-table"><thead><tr><th>Date</th><th>Description</th><th>Montant</th><th>Type</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Avancement Événements</div>
+      <div id="db-events-progress"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBRES -->
+<div class="page" id="page-membres">
+  <div class="page-header">
+    <div><div class="page-title">Membres & Cotisations</div><div class="page-sub">Module A — Gestion des adhérents</div></div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="exportCSV('membres')">⬇ Export CSV</button>
+      <button class="btn btn-outline" onclick="exportPrint()">🖨 Imprimer</button>
+      <button class="btn btn-primary" onclick="openModal('modal-membre',null)">+ Ajouter Membre</button>
+    </div>
+  </div>
+  <div class="kpi-grid kpi-2">
+    <div class="kpi-card blue"><div class="kpi-label">Total Membres</div><div class="kpi-value" style="color:var(--accent)" id="m-total">0</div></div>
+    <div class="kpi-card yellow"><div class="kpi-label">En Attente de Paiement</div><div class="kpi-value" style="color:var(--warn)" id="m-pending">0</div></div>
+  </div>
+  <div class="card">
+    <div class="search-bar">
+      <input class="search-input" placeholder="🔍  Rechercher..." oninput="filterMembers(this.value)">
+      <select class="form-select" style="width:170px" onchange="filterMembers(document.querySelector('.search-input').value)" id="filter-cellule">
+        <option value="">Toutes cellules</option>
+        <option>Trésorerie</option><option>Formation</option><option>Sponsoring</option>
+        <option>Événement</option><option>Projet</option><option>Design</option>
+        <option>Média</option><option>Partenariat</option><option>Relation Externe</option><option>Business</option>
+      </select>
+      <select class="form-select" style="width:130px" onchange="filterMembers(document.querySelector('.search-input').value)" id="filter-statut">
+        <option value="">Tous statuts</option><option value="Payé">Cotisé</option><option value="En attente">En attente</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>#</th><th>Nom & Prénom</th><th>Niveau</th><th>Cellule</th><th>Date Paiement</th><th>Montant</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="membres-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- BUDGET EVENEMENTS -->
+<div class="page" id="page-budget">
+  <div class="page-header">
+    <div><div class="page-title">Budget & Événements</div><div class="page-sub">Module B — Planification financière</div></div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="exportCSV('evenements')">⬇ Export CSV</button>
+      <button class="btn btn-outline" onclick="exportPrint()">🖨 Imprimer</button>
+      <button class="btn btn-primary" onclick="openEventModal(null)">+ Créer Événement</button>
+    </div>
+  </div>
+  <div class="kpi-grid kpi-3">
+    <div class="kpi-card blue"><div class="kpi-label">Événements Planifiés</div><div class="kpi-value" style="color:var(--accent)" id="ev-count">0</div></div>
+    <div class="kpi-card yellow"><div class="kpi-label">Budget Total Estimé</div><div class="kpi-value" style="color:var(--warn);font-size:18px" id="ev-budget">0</div></div>
+    <div class="kpi-card green"><div class="kpi-label">Sponsors Confirmés</div><div class="kpi-value" style="color:var(--accent2)" id="ev-sponsors">0</div></div>
+  </div>
+  <div id="events-list"></div>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="page" id="page-transactions">
+  <div class="page-header">
+    <div><div class="page-title">Dépenses & Flux Réels</div><div class="page-sub">Module C — Journal comptable</div></div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="exportCSV('transactions')">⬇ Export CSV</button>
+      <button class="btn btn-outline" onclick="exportPrint()">🖨 Imprimer</button>
+      <button class="btn btn-success" onclick="openModal('modal-transaction',null)">+ Enregistrer</button>
+    </div>
+  </div>
+  <div class="cf-summary">
+    <div class="cf-card"><div class="cf-label">Total Revenus</div><div class="cf-val" style="color:var(--accent2)" id="tx-revenus">0 DH</div></div>
+    <div class="cf-card"><div class="cf-label">Total Dépenses</div><div class="cf-val" style="color:var(--danger)" id="tx-depenses">0 DH</div></div>
+    <div class="cf-card"><div class="cf-label">Solde Net</div><div class="cf-val" id="tx-balance">0 DH</div></div>
+  </div>
+  <div class="card">
+    <div class="search-bar">
+      <input class="search-input" id="tx-search" placeholder="🔍  Rechercher..." oninput="filterTx(this.value)">
+      <select class="form-select" style="width:130px" id="filter-tx-type" onchange="filterTx(document.getElementById('tx-search').value)">
+        <option value="">Tous types</option><option value="Income">Revenus</option><option value="Expense">Dépenses</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Description</th><th>Montant</th><th>Type</th><th>Actions</th></tr></thead>
+      <tbody id="tx-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORIQUE MENSUEL -->
+<div class="page" id="page-historique">
+  <div class="page-header">
+    <div><div class="page-title">Historique Mensuel</div><div class="page-sub">Toutes les activités financières classées par mois</div></div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="exportCSV('transactions')">⬇ Export CSV</button>
+      <button class="btn btn-outline" onclick="exportPrint()">🖨 Imprimer</button>
+      <button class="btn btn-success" onclick="openModal('modal-transaction',null)">+ Ajouter Activité</button>
+    </div>
+  </div>
+  <div class="hist-filter-row">
+    <input class="search-input" id="hist-search" placeholder="🔍 Rechercher une activité..." oninput="renderHistorique()" style="max-width:320px">
+    <select class="form-select" id="hist-type" onchange="renderHistorique()" style="width:130px">
+      <option value="">Tous types</option><option value="Income">Revenus</option><option value="Expense">Dépenses</option>
+    </select>
+    <select class="form-select" id="hist-month-filter" onchange="renderHistorique()" style="width:160px">
+      <option value="">Tous les mois</option>
+    </select>
+  </div>
+  <div class="cf-summary" style="margin-bottom:20px">
+    <div class="cf-card"><div class="cf-label">↑ Total Revenus (Hist.)</div><div class="cf-val" style="color:var(--accent2)" id="hist-rev">0 DH</div></div>
+    <div class="cf-card"><div class="cf-label">↓ Total Dépenses (Hist.)</div><div class="cf-val" style="color:var(--danger)" id="hist-dep">0 DH</div></div>
+    <div class="cf-card"><div class="cf-label">💰 Solde Net Global</div><div class="cf-val" id="hist-net">0 DH</div></div>
+  </div>
+  <div id="hist-content"></div>
+</div>
+
+<!-- SPONSORS -->
+<div class="page" id="page-sponsors">
+  <div class="page-header">
+    <div><div class="page-title">Sponsors & Partenaires</div><div class="page-sub">Suivi des partenariats et promesses de dons</div></div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="exportCSV('sponsors')">⬇ Export CSV</button>
+      <button class="btn btn-outline" onclick="exportPrint()">🖨 Imprimer</button>
+      <button class="btn btn-primary" onclick="openModal('modal-sponsor',null)">+ Nouveau Sponsor</button>
+    </div>
+  </div>
+  <div class="kpi-grid kpi-3">
+    <div class="kpi-card green"><div class="kpi-label">Sponsors Confirmés</div><div class="kpi-value" style="color:var(--accent2)" id="sp-confirmed">0</div></div>
+    <div class="kpi-card yellow"><div class="kpi-label">En Négociation</div><div class="kpi-value" style="color:var(--warn)" id="sp-negociation">0</div></div>
+    <div class="kpi-card blue"><div class="kpi-label">Total Collecté</div><div class="kpi-value" style="color:var(--accent);font-size:18px" id="sp-total">0</div></div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table><thead><tr><th>Entreprise</th><th>Nom Responsable</th><th>Contact</th><th>Montant</th><th>Événement lié</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="sponsors-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- Modal Membre -->
+<div class="modal-overlay" id="modal-membre">
+  <div class="modal">
+    <div class="modal-title"><span id="modal-membre-title">Ajouter un Membre</span><span class="modal-close" onclick="closeModal('modal-membre')">×</span></div>
+    <input type="hidden" id="m-id">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nom</label><input type="text" class="form-input" id="m-nom" placeholder="Benali"></div>
+      <div class="form-group"><label class="form-label">Prénom</label><input type="text" class="form-input" id="m-prenom" placeholder="Yassine"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Niveau d'étude</label>
+        <select class="form-select" id="m-niveau"><option>CP1</option><option>CP2</option><option>GIL1</option><option>GIL2</option><option>GIL3</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Cellule</label>
+        <select class="form-select" id="m-cellule">
+          <option>Trésorerie</option><option>Formation</option><option>Sponsoring</option>
+          <option>Événement</option><option>Projet</option><option>Design</option>
+          <option>Média</option><option>Partenariat</option><option>Relation Externe</option><option>Business</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Montant Cotisation (DH)</label><input type="number" class="form-input" id="m-montant" placeholder="5000"></div>
+      <div class="form-group"><label class="form-label">Date de Paiement</label><input type="date" class="form-input" id="m-date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Statut Paiement</label>
+      <select class="form-select" id="m-statut"><option value="En attente">En attente</option><option value="Payé">Payé</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-membre')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveMembre()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Transaction -->
+<div class="modal-overlay" id="modal-transaction">
+  <div class="modal">
+    <div class="modal-title"><span id="modal-tx-title">Nouvelle Transaction</span><span class="modal-close" onclick="closeModal('modal-transaction')">×</span></div>
+    <input type="hidden" id="tx-id">
+    <div class="form-group"><label class="form-label">Type</label>
+      <select class="form-select" id="tx-type"><option value="Income">↑ Revenu</option><option value="Expense">↓ Dépense</option></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="tx-date"></div>
+      <div class="form-group"><label class="form-label">Montant (DH)</label><input type="number" class="form-input" id="tx-montant" placeholder="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Description</label><input type="text" class="form-input" id="tx-desc" placeholder="Ex: Cotisation Cellule Événement"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-transaction')">Annuler</button>
+      <button class="btn btn-success" onclick="saveTransaction()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sponsor -->
+<div class="modal-overlay" id="modal-sponsor">
+  <div class="modal">
+    <div class="modal-title"><span id="modal-sp-title">Nouveau Sponsor</span><span class="modal-close" onclick="closeModal('modal-sponsor')">×</span></div>
+    <input type="hidden" id="sp-id">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Entreprise</label><input type="text" class="form-input" id="sp-entreprise" placeholder="AlphaTech SPA"></div>
+      <div class="form-group"><label class="form-label">Nom du Responsable</label><input type="text" class="form-input" id="sp-responsable" placeholder="M. Benali Hocine"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Contact Responsable</label><input type="text" class="form-input" id="sp-contact" placeholder="email ou téléphone"></div>
+      <div class="form-group"><label class="form-label">Montant Accordé (DH)</label><input type="number" class="form-input" id="sp-montant" placeholder="50000"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Événement Lié</label>
+        <select class="form-select" id="sp-event"><option value="">— Général —</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Statut</label>
+        <select class="form-select" id="sp-statut"><option value="Confirmé">Confirmé</option><option value="En négociation">En négociation</option></select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-sponsor')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveSponsor()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Événement — Postes libres -->
+<div class="modal-overlay" id="modal-event">
+  <div class="modal modal-lg">
+    <div class="modal-title"><span id="modal-ev-title">Créer un Événement</span><span class="modal-close" onclick="closeModal('modal-event')">×</span></div>
+    <input type="hidden" id="ev-id">
+    <div class="tabs" id="event-tabs">
+      <div class="tab-btn active" onclick="switchTab(0)">📋 Général</div>
+      <div class="tab-btn" onclick="switchTab(1)">💰 Postes Budgétaires</div>
+    </div>
+
+    <!-- TAB 0 — Général -->
+    <div id="ev-tab-0">
+      <div class="form-group"><label class="form-label">Nom de l'Événement</label><input type="text" class="form-input" id="ev-nom" placeholder="Ex: Gala Annuel GIL 2026"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Date Prévue</label><input type="date" class="form-input" id="ev-date"></div>
+        <div class="form-group"><label class="form-label">Lieu / Location</label><input type="text" class="form-input" id="ev-lieu" placeholder="Ex: Salle Ibn Khaldoun"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Statut</label>
+        <select class="form-select" id="ev-statut"><option value="Planifié">Planifié</option><option value="En cours">En cours</option><option value="Terminé">Terminé</option><option value="Annulé">Annulé</option></select>
+      </div>
+    </div>
+
+    <!-- TAB 1 — Postes libres -->
+    <div id="ev-tab-1" style="display:none">
+      <div class="form-section">
+        <div class="form-section-title">💰 Postes Budgétaires — Saisissez librement chaque poste</div>
+
+        <!-- Liste des postes existants -->
+        <div id="postes-libres-list" style="min-height:40px;margin-bottom:4px;"></div>
+
+        <!-- Ligne d'ajout -->
+        <div class="poste-add-row">
+          <div>
+            <label class="form-label" style="margin-bottom:4px">Nom du Poste</label>
+            <input type="text" class="form-input" id="np-label" placeholder="Ex: Location salle, Traiteur...">
+          </div>
+          <div>
+            <label class="form-label" style="margin-bottom:4px">Montant (DH)</label>
+            <input type="number" class="form-input" id="np-montant" placeholder="0" min="0">
+          </div>
+          <button class="btn btn-success" style="align-self:flex-end" onclick="addPosteLibre()">+ Ajouter</button>
+        </div>
+      </div>
+
+      <!-- Totaux -->
+      <div style="background:rgba(247,193,79,.06);border:1px solid rgba(247,193,79,.2);border-radius:10px;padding:14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:13px;color:var(--muted)">💰 Budget Total Estimé</div>
+        <div id="ev-total-display" style="color:var(--warn);font-weight:700;font-size:20px;font-family:'DM Mono',monospace;">0 DH</div>
+      </div>
+      <div style="background:rgba(79,142,247,.06);border:1px solid rgba(79,142,247,.2);border-radius:10px;padding:14px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:13px;color:var(--muted)">📊 Solde Événement <span style="font-size:11px">(Sponsors liés — Budget)</span></div>
+        <div id="ev-solde-display" style="font-weight:700;font-size:20px;font-family:'DM Mono',monospace;">0 DH</div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-event')">Annuler</button>
+      <button class="btn btn-warn" id="ev-prev-btn" style="display:none" onclick="switchTab(evTabIndex-1)">← Précédent</button>
+      <button class="btn btn-primary" id="ev-next-btn" onclick="switchTab(evTabIndex+1)">Suivant →</button>
+      <button class="btn btn-primary" id="ev-save-btn" style="display:none" onclick="saveEvent()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="confirm-box">
+    <h3>⚠️ Confirmer la suppression</h3>
+    <p id="confirm-msg">Voulez-vous vraiment supprimer cet élément ?</p>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-confirm')">Annuler</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">🗑 Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CELLULES=[
+  {label:'Trésorerie',cls:'tresorerie'},{label:'Formation',cls:'formation'},{label:'Sponsoring',cls:'sponsoring'},
+  {label:'Événement',cls:'evenement'},{label:'Projet',cls:'projet'},{label:'Design',cls:'design'},
+  {label:'Média',cls:'media'},{label:'Partenariat',cls:'partenariat'},{label:'Relation Externe',cls:'relation'},{label:'Business',cls:'business'},
+];
+function celluleClass(c){const f=CELLULES.find(x=>x.label===c);return f?f.cls:'formation';}
+const MOIS_FR=['','Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+let DB={
+  membres:[
+    {id:1,nom:'Benali',prenom:'Yassine',niveau:'GIL3',cellule:'Trésorerie',montant:5000,date:'2026-01-15',statut:'Payé'},
+    {id:2,nom:'Cherif',prenom:'Amina',niveau:'GIL2',cellule:'Formation',montant:5000,date:'2026-01-20',statut:'Payé'},
+    {id:3,nom:'Mansouri',prenom:'Riad',niveau:'GIL3',cellule:'Événement',montant:0,date:'',statut:'En attente'},
+    {id:4,nom:'Khelif',prenom:'Sara',niveau:'CP2',cellule:'Sponsoring',montant:5000,date:'2026-02-01',statut:'Payé'},
+    {id:5,nom:'Boudaoud',prenom:'Karim',niveau:'GIL1',cellule:'Projet',montant:0,date:'',statut:'En attente'},
+    {id:6,nom:'Tlemceni',prenom:'Nadia',niveau:'GIL2',cellule:'Design',montant:5000,date:'2026-02-05',statut:'Payé'},
+    {id:7,nom:'Hamadi',prenom:'Sofiane',niveau:'CP1',cellule:'Média',montant:0,date:'',statut:'En attente'},
+    {id:8,nom:'Zeroual',prenom:'Lina',niveau:'GIL3',cellule:'Partenariat',montant:5000,date:'2026-02-10',statut:'Payé'},
+    {id:9,nom:'Aissaoui',prenom:'Walid',niveau:'GIL1',cellule:'Relation Externe',montant:0,date:'',statut:'En attente'},
+    {id:10,nom:'Khaldi',prenom:'Meriem',niveau:'GIL2',cellule:'Business',montant:5000,date:'2026-02-12',statut:'Payé'},
+  ],
+  transactions:[
+    {id:1,type:'Income',date:'2026-02-12',montant:30000,desc:'Cotisation Cellule Trésorerie & Formation'},
+    {id:2,type:'Expense',date:'2026-02-11',montant:8200,desc:'Achat matériel sonorisation'},
+    {id:3,type:'Income',date:'2026-02-10',montant:50000,desc:'Sponsoring AlphaTech'},
+    {id:4,type:'Expense',date:'2026-02-08',montant:1500,desc:'Impression flyers & affiches'},
+    {id:5,type:'Income',date:'2026-02-07',montant:4000,desc:'Cotisation Cellule Business'},
+    {id:6,type:'Income',date:'2026-01-20',montant:10000,desc:'Cotisation Membres Janvier'},
+    {id:7,type:'Expense',date:'2026-01-18',montant:3500,desc:'Achat fournitures bureau'},
+    {id:8,type:'Income',date:'2026-01-10',montant:25000,desc:'Sponsoring Groupe Meridian (avance)'},
+    {id:9,type:'Expense',date:'2025-12-15',montant:12000,desc:'Location salle Gala préparatoire'},
+    {id:10,type:'Income',date:'2025-12-05',montant:20000,desc:'Cotisations Décembre'},
+    {id:11,type:'Expense',date:'2025-11-22',montant:6000,desc:'Impression supports communication'},
+    {id:12,type:'Income',date:'2025-11-15',montant:15000,desc:'Sponsoring partiel StartupX'},
+  ],
+  evenements:[
+    {id:1,nom:'Gala Annuel GIL',date:'2026-03-15',lieu:'Salle Ibn Khaldoun, Alger',statut:'Planifié',
+     postes:[
+       {label:'Location de Salle',montant:60000},
+       {label:'Traiteur / Restauration',montant:50000},
+       {label:'Décoration',montant:20000},
+       {label:'Éclairage',montant:8000},
+       {label:'Sonorisation',montant:15000},
+       {label:'Photographe / Vidéaste',montant:12000},
+       {label:'Invitations & Impression',montant:5000},
+       {label:'Communication / Publicité',montant:10000},
+       {label:'Cadeaux / Trophées',montant:8000},
+       {label:'Transport / Logistique',montant:5000},
+     ]},
+    {id:2,nom:'Séminaire Études',date:'2026-04-05',lieu:'Amphi Principal, Université',statut:'Planifié',
+     postes:[
+       {label:'Location de Salle',montant:15000},
+       {label:'Sonorisation',montant:5000},
+       {label:'Photographe',montant:3000},
+       {label:'Invitations',montant:2000},
+       {label:'Communication',montant:5000},
+       {label:'Intervenant Expert IA',montant:8000},
+     ]},
+  ],
+  sponsors:[
+    {id:1,entreprise:'AlphaTech SPA',responsable:'Benali Hocine',contact:'h.benali@alphatech.dz',montant:50000,eventId:1,statut:'Confirmé'},
+    {id:2,entreprise:'Groupe Meridian',responsable:'Saidi Wafa',contact:'0560-789-012',montant:30000,eventId:2,statut:'Confirmé'},
+    {id:3,entreprise:'StartupX Alger',responsable:'Ould Ali Mourad',contact:'mourad@startupx.dz',montant:15000,eventId:null,statut:'Confirmé'},
+    {id:4,entreprise:'BetaGroup SA',responsable:'Hamidi Rachida',contact:'0770-901-234',montant:0,eventId:null,statut:'En négociation'},
+  ],
+  nextId:{membres:11,transactions:13,evenements:3,sponsors:5}
+};
+
+let deleteTarget={type:'',id:0};
+let evTabIndex=0;
+let tempPostes=[];   // [{label, montant}]
+
+// =====================
+// NAV
+// =====================
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('page-'+item.dataset.page).classList.add('active');
+    renderAll();
+  });
+});
+
+function renderAll(){renderDashboard();renderMembres();renderTransactions();renderEvenements();renderSponsors();renderHistorique();}
+
+// =====================
+// EXPORT
+// =====================
+function exportPrint(){window.print();}
+
+function exportCSV(type){
+  let rows=[], filename='export.csv';
+  if(type==='membres'||type==='all'){
+    rows=[['#','Nom','Prénom','Niveau','Cellule','Montant DH','Date Paiement','Statut']];
+    DB.membres.forEach(m=>rows.push([m.id,m.nom,m.prenom,m.niveau,m.cellule,m.montant,m.date,m.statut]));
+    filename='membres.csv';
+  }
+  if(type==='transactions'){
+    rows=[['Date','Description','Montant DH','Type']];
+    DB.transactions.sort((a,b)=>b.date.localeCompare(a.date)).forEach(t=>rows.push([t.date,t.desc,t.montant,t.type==='Income'?'Revenu':'Dépense']));
+    filename='transactions.csv';
+  }
+  if(type==='evenements'){
+    rows=[['Événement','Date','Lieu','Statut','Budget Total DH']];
+    DB.evenements.forEach(e=>rows.push([e.nom,e.date,e.lieu,e.statut,evBudget(e)]));
+    filename='evenements.csv';
+  }
+  if(type==='sponsors'){
+    rows=[['Entreprise','Responsable','Contact','Montant DH','Événement','Statut']];
+    DB.sponsors.forEach(s=>{
+      const ev=DB.evenements.find(e=>e.id===s.eventId);
+      rows.push([s.entreprise,s.responsable,s.contact,s.montant,ev?ev.nom:'Général',s.statut]);
+    });
+    filename='sponsors.csv';
+  }
+  if(type==='all'){
+    // summary sheet
+    const rev=DB.transactions.filter(t=>t.type==='Income').reduce((s,t)=>s+t.montant,0);
+    const dep=DB.transactions.filter(t=>t.type==='Expense').reduce((s,t)=>s+t.montant,0);
+    rows.push([]);
+    rows.push(['=== RÉSUMÉ TRÉSORERIE ===']);
+    rows.push(['Total Revenus DH',rev]);rows.push(['Total Dépenses DH',dep]);rows.push(['Solde Net DH',rev-dep]);
+    filename='rapport_tresorerie.csv';
+  }
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast('Export CSV téléchargé : '+filename,'success');
+}
+
+// =====================
+// DASHBOARD
+// =====================
+function renderDashboard(){
+  const total=DB.membres.length,paid=DB.membres.filter(m=>m.statut==='Payé').length,pending=total-paid;
+  const rev=DB.transactions.filter(t=>t.type==='Income').reduce((s,t)=>s+t.montant,0);
+  const dep=DB.transactions.filter(t=>t.type==='Expense').reduce((s,t)=>s+t.montant,0);
+  const solde=rev-dep;
+  const nowM='2026-02';
+  const revM=DB.transactions.filter(t=>t.type==='Income'&&t.date.startsWith(nowM)).reduce((s,t)=>s+t.montant,0);
+  const depM=DB.transactions.filter(t=>t.type==='Expense'&&t.date.startsWith(nowM)).reduce((s,t)=>s+t.montant,0);
+  set('db-membres',total);set('db-cotises-nb',paid);set('db-pending-nb',pending);
+  set('db-revenus',fmt(revM));set('db-depenses',fmt(depM));
+  set('db-rev-total',fmt(rev));set('db-dep-total',fmt(dep));
+  const sEl=document.getElementById('db-solde-big');
+  if(sEl){sEl.textContent=(solde>=0?'+':'')+fmt(solde);sEl.style.color=solde>=0?'var(--accent2)':'var(--danger)';}
+  set('db-rate',total>0?Math.round(paid/total*100)+'%':'0%');
+  set('db-d-paid',paid);set('db-d-pend',pending);
+  const circ=2*Math.PI*38,ratio=total>0?paid/total:0,arc1=circ*ratio;
+  const a1=document.getElementById('donut-arc-paid'),a2=document.getElementById('donut-arc-pend');
+  if(a1)a1.setAttribute('stroke-dasharray',`${arc1} ${circ-arc1}`);
+  if(a2){a2.setAttribute('stroke-dasharray',`${circ*(1-ratio)} ${circ*ratio}`);a2.setAttribute('stroke-dashoffset',`-${arc1}`);}
+  const tbody=document.querySelector('#db-tx-table tbody');
+  if(tbody)tbody.innerHTML=DB.transactions.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(t=>`<tr>
+    <td class="mono">${t.date}</td><td>${t.desc}</td>
+    <td class="mono" style="color:${t.type==='Income'?'var(--accent2)':'var(--danger)'}">${t.type==='Income'?'+':'-'}${fmt(t.montant)}</td>
+    <td><span class="badge badge-${t.type==='Income'?'income':'expense'}">${t.type==='Income'?'↑ Revenu':'↓ Dépense'}</span></td></tr>`).join('');
+  const ep=document.getElementById('db-events-progress');
+  if(ep)ep.innerHTML=DB.evenements.map(ev=>{
+    const budget=evBudget(ev),maxB=200000,pct=Math.min(99,Math.round(budget/maxB*100));
+    return `<div class="progress-wrap"><div class="progress-header"><span>${ev.nom}</span><span style="color:var(--warn)">${fmt(budget)}</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:var(--accent)"></div></div></div>`;
+  }).join('');
+  drawChart();
+}
+
+function evBudget(ev){return (ev.postes||[]).reduce((s,p)=>s+(p.montant||0),0);}
+
+function drawChart(){
+  const data=[{i:45000,e:30000},{i:62000,e:48000},{i:55000,e:42000},{i:90000,e:75000},{i:75000,e:52000},{i:84000,e:56200}];
+  const maxV=Math.max(...data.map(d=>Math.max(d.i,d.e)));
+  const chart=document.getElementById('cashflow-chart');
+  if(!chart)return;chart.innerHTML='';
+  data.forEach(d=>{
+    const iH=Math.round(d.i/maxV*105),eH=Math.round(d.e/maxV*105);
+    const col=document.createElement('div');col.className='chart-col';
+    col.innerHTML=`<div class="bar-group"><div class="bar income" style="height:${iH}px" data-val="+${Math.round(d.i/1000)}K DH"></div><div class="bar expense" style="height:${eH}px" data-val="-${Math.round(d.e/1000)}K DH"></div></div>`;
+    chart.appendChild(col);
+  });
+}
+
+// =====================
+// MEMBRES
+// =====================
+function renderMembres(filter='',cellule='',statut=''){
+  set('m-total',DB.membres.length);set('m-pending',DB.membres.filter(m=>m.statut==='En attente').length);
+  let list=DB.membres.filter(m=>{
+    const ok1=!filter||`${m.nom} ${m.prenom} ${m.cellule}`.toLowerCase().includes(filter.toLowerCase());
+    const ok2=!cellule||m.cellule===cellule;
+    const ok3=!statut||m.statut===statut;
+    return ok1&&ok2&&ok3;
+  });
+  document.getElementById('membres-tbody').innerHTML=list.map(m=>`<tr>
+    <td class="mono">${String(m.id).padStart(3,'0')}</td>
+    <td><strong>${m.nom}</strong> ${m.prenom}</td>
+    <td style="color:var(--muted)">${m.niveau}</td>
+    <td><span class="tag tag-${celluleClass(m.cellule)}">${m.cellule}</span></td>
+    <td class="mono">${m.date||'—'}</td>
+    <td class="mono" style="color:${m.statut==='Payé'?'var(--accent2)':'var(--muted)'}">${m.statut==='Payé'?fmt(m.montant):'—'}</td>
+    <td><span class="badge badge-${m.statut==='Payé'?'paid':'pending'}">${m.statut==='Payé'?'✓ Payé':'⏳ Attente'}</span></td>
+    <td><div style="display:flex;gap:5px">
+      <button class="btn btn-warn btn-sm" onclick="openModal('modal-membre',${m.id})">✏</button>
+      <button class="btn btn-danger btn-sm" onclick="askDelete('membres',${m.id},'${m.nom} ${m.prenom}')">🗑</button>
+    </div></td></tr>`).join('');
+}
+function filterMembers(val){renderMembres(val,document.getElementById('filter-cellule').value,document.getElementById('filter-statut').value);}
+
+// =====================
+// MODAL OPEN / CLOSE
+// =====================
+function openModal(modalId,id){
+  document.getElementById(modalId).classList.add('open');
+  if(modalId==='modal-membre'){
+    const m=id?DB.membres.find(x=>x.id===id):null;
+    set('modal-membre-title',m?'Modifier le Membre':'Ajouter un Membre');
+    setVal('m-id',m?m.id:'');setVal('m-nom',m?m.nom:'');setVal('m-prenom',m?m.prenom:'');
+    setVal('m-niveau',m?m.niveau:'CP1');setVal('m-cellule',m?m.cellule:'Trésorerie');
+    setVal('m-montant',m?m.montant:'');setVal('m-date',m?m.date:'');setVal('m-statut',m?m.statut:'En attente');
+  }
+  if(modalId==='modal-transaction'){
+    const t=id?DB.transactions.find(x=>x.id===id):null;
+    set('modal-tx-title',t?'Modifier la Transaction':'Nouvelle Transaction');
+    setVal('tx-id',t?t.id:'');setVal('tx-type',t?t.type:'Income');setVal('tx-date',t?t.date:today());
+    setVal('tx-montant',t?t.montant:'');setVal('tx-desc',t?t.desc:'');
+  }
+  if(modalId==='modal-sponsor'){
+    const s=id?DB.sponsors.find(x=>x.id===id):null;
+    set('modal-sp-title',s?'Modifier le Sponsor':'Nouveau Sponsor');
+    setVal('sp-id',s?s.id:'');setVal('sp-entreprise',s?s.entreprise:'');setVal('sp-responsable',s?s.responsable:'');
+    setVal('sp-contact',s?s.contact:'');setVal('sp-montant',s?s.montant:'');setVal('sp-statut',s?s.statut:'Confirmé');
+    const sel=document.getElementById('sp-event');
+    sel.innerHTML='<option value="">— Général —</option>'+DB.evenements.map(e=>`<option value="${e.id}">${e.nom}</option>`).join('');
+    if(s)setVal('sp-event',s.eventId||'');
+  }
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});});
+
+// =====================
+// SAVE MEMBRE
+// =====================
+function saveMembre(){
+  const id=parseInt(getVal('m-id'))||0;
+  const obj={id:id||DB.nextId.membres++,nom:getVal('m-nom'),prenom:getVal('m-prenom'),
+    niveau:getVal('m-niveau'),cellule:getVal('m-cellule'),montant:parseFloat(getVal('m-montant'))||0,
+    date:getVal('m-date'),statut:getVal('m-statut')};
+  if(!obj.nom||!obj.prenom){showToast('Nom et Prénom requis','danger');return;}
+  if(id){const i=DB.membres.findIndex(m=>m.id===id);DB.membres[i]=obj;}else DB.membres.push(obj);
+  closeModal('modal-membre');renderAll();showToast(id?'Membre modifié !':'Membre ajouté !','success');
+}
+
+// =====================
+// TRANSACTIONS
+// =====================
+function renderTransactions(){
+  const rev=DB.transactions.filter(t=>t.type==='Income').reduce((s,t)=>s+t.montant,0);
+  const dep=DB.transactions.filter(t=>t.type==='Expense').reduce((s,t)=>s+t.montant,0);
+  set('tx-revenus',fmt(rev));set('tx-depenses',fmt(dep));
+  const bal=rev-dep,balEl=document.getElementById('tx-balance');
+  if(balEl){balEl.textContent=(bal>=0?'+':'')+fmt(bal);balEl.style.color=bal>=0?'var(--accent2)':'var(--danger)';}
+  filterTx('');
+}
+function filterTx(val){
+  const typeF=document.getElementById('filter-tx-type')?.value||'';
+  let list=DB.transactions.filter(t=>{
+    const ok1=!val||(t.desc+t.date).toLowerCase().includes(val.toLowerCase());
+    const ok2=!typeF||t.type===typeF;
+    return ok1&&ok2;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('tx-tbody').innerHTML=list.map(t=>`<tr>
+    <td class="mono">${t.date}</td><td>${t.desc}</td>
+    <td class="mono" style="color:${t.type==='Income'?'var(--accent2)':'var(--danger)'}">${t.type==='Income'?'+':'-'}${fmt(t.montant)}</td>
+    <td><span class="badge badge-${t.type==='Income'?'income':'expense'}">${t.type==='Income'?'↑ Revenu':'↓ Dépense'}</span></td>
+    <td><div style="display:flex;gap:5px">
+      <button class="btn btn-warn btn-sm" onclick="openModal('modal-transaction',${t.id})">✏</button>
+      <button class="btn btn-danger btn-sm" onclick="askDelete('transactions',${t.id},'cette transaction')">🗑</button>
+    </div></td></tr>`).join('');
+}
+function saveTransaction(){
+  const id=parseInt(getVal('tx-id'))||0;
+  const obj={id:id||DB.nextId.transactions++,type:getVal('tx-type'),date:getVal('tx-date'),
+    montant:parseFloat(getVal('tx-montant'))||0,desc:getVal('tx-desc')};
+  if(!obj.desc||!obj.montant){showToast('Description et montant requis','danger');return;}
+  if(id){const i=DB.transactions.findIndex(t=>t.id===id);DB.transactions[i]=obj;}else DB.transactions.push(obj);
+  closeModal('modal-transaction');renderAll();showToast(id?'Transaction modifiée !':'Transaction enregistrée !','success');
+}
+
+// =====================
+// HISTORIQUE MENSUEL
+// =====================
+function renderHistorique(){
+  const search=(document.getElementById('hist-search')?.value||'').toLowerCase();
+  const typeF=document.getElementById('hist-type')?.value||'';
+  const monthF=document.getElementById('hist-month-filter')?.value||'';
+  let list=DB.transactions.filter(t=>{
+    return (!search||(t.desc+t.date).toLowerCase().includes(search))
+      &&(!typeF||t.type===typeF)&&(!monthF||t.date.startsWith(monthF));
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+  const rev=list.filter(t=>t.type==='Income').reduce((s,t)=>s+t.montant,0);
+  const dep=list.filter(t=>t.type==='Expense').reduce((s,t)=>s+t.montant,0);
+  const net=rev-dep;
+  set('hist-rev',fmt(rev));set('hist-dep',fmt(dep));
+  const hNet=document.getElementById('hist-net');
+  if(hNet){hNet.textContent=(net>=0?'+':'')+fmt(net);hNet.style.color=net>=0?'var(--accent2)':'var(--danger)';}
+  const allMonths=[...new Set(DB.transactions.map(t=>t.date.slice(0,7)))].sort().reverse();
+  const mSel=document.getElementById('hist-month-filter');
+  if(mSel){const cur=mSel.value;mSel.innerHTML='<option value="">Tous les mois</option>'+allMonths.map(m=>{const[y,mo]=m.split('-');return `<option value="${m}"${m===cur?' selected':''}>${MOIS_FR[parseInt(mo)]} ${y}</option>`;}).join('');}
+  const groups={};
+  list.forEach(t=>{const k=t.date.slice(0,7);if(!groups[k])groups[k]=[];groups[k].push(t);});
+  const keys=Object.keys(groups).sort().reverse();
+  const cont=document.getElementById('hist-content');
+  if(!cont)return;
+  if(!keys.length){cont.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px">Aucune activité trouvée.</div>';return;}
+  cont.innerHTML=keys.map(key=>{
+    const[y,mo]=key.split('-'),label=`${MOIS_FR[parseInt(mo)]} ${y}`;
+    const items=groups[key];
+    const mRev=items.filter(t=>t.type==='Income').reduce((s,t)=>s+t.montant,0);
+    const mDep=items.filter(t=>t.type==='Expense').reduce((s,t)=>s+t.montant,0);
+    const mNet=mRev-mDep;
+    return `<div class="hist-month-block">
+      <div class="hist-month-header">
+        <div class="hist-month-title">📅 ${label}</div>
+        <div class="hist-month-badges">
+          <span style="font-size:12px;color:var(--accent2)">↑ ${fmt(mRev)}</span>·
+          <span style="font-size:12px;color:var(--danger)">↓ ${fmt(mDep)}</span>·
+          <span class="hist-net" style="color:${mNet>=0?'var(--accent2)':'var(--danger)'}">${mNet>=0?'+':''}${fmt(mNet)} solde</span>
+          <span class="badge badge-${mNet>=0?'paid':'pending'}">${items.length} activité${items.length>1?'s':''}</span>
+        </div>
+      </div>
+      ${items.map(t=>`<div class="hist-entry ${t.type==='Income'?'income-entry':'expense-entry'}">
+        <div class="hist-dot ${t.type==='Income'?'income':'expense'}"></div>
+        <div class="hist-info"><div class="hist-desc">${t.desc}</div><div class="hist-meta">🗓 ${t.date} &nbsp;·&nbsp; ${t.type==='Income'?'Revenu':'Dépense'}</div></div>
+        <div class="hist-amt" style="color:${t.type==='Income'?'var(--accent2)':'var(--danger)'}">${t.type==='Income'?'+':'-'}${fmt(t.montant)}</div>
+        <div style="display:flex;gap:4px;margin-left:8px">
+          <button class="btn btn-warn btn-sm" onclick="openModal('modal-transaction',${t.id})">✏</button>
+          <button class="btn btn-danger btn-sm" onclick="askDelete('transactions',${t.id},'cette activité')">🗑</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// =====================
+// EVENEMENTS — postes libres
+// =====================
+function renderEvenements(){
+  set('ev-count',DB.evenements.length);
+  set('ev-budget',fmt(DB.evenements.reduce((s,e)=>s+evBudget(e),0)));
+  set('ev-sponsors',DB.sponsors.filter(s=>s.statut==='Confirmé').length);
+  const list=document.getElementById('events-list');
+  if(!list)return;
+  list.innerHTML=DB.evenements.map(ev=>{
+    const budget=evBudget(ev);
+    const sponsorsAmt=DB.sponsors.filter(s=>s.eventId===ev.id&&s.statut==='Confirmé').reduce((s,sp)=>s+sp.montant,0);
+    const soldeEv=sponsorsAmt-budget;
+    return `<div class="event-card">
+      <div class="event-card-header">
+        <div><div class="event-card-title">📅 ${ev.nom}</div><div class="event-card-date">📍 ${ev.lieu} &nbsp;·&nbsp; 🗓 ${ev.date}</div></div>
+        <div style="text-align:right">
+          <div class="event-budget-total">${fmt(budget)}</div>
+          <div style="font-size:11px;color:var(--muted)">Budget estimé</div>
+          <div style="font-size:12px;margin-top:3px;color:${soldeEv>=0?'var(--accent2)':'var(--danger)'}">Solde: ${soldeEv>=0?'+':''}${fmt(soldeEv)}</div>
+          <div style="margin-top:6px"><span class="badge badge-${ev.statut==='Planifié'?'pending':ev.statut==='Terminé'?'confirmed':'expense'}">${ev.statut}</span></div>
+        </div>
+      </div>
+      <div class="event-postes">
+        ${(ev.postes||[]).map(p=>`<div class="poste-tag">📌 ${p.label} <span>${fmt(p.montant)}</span></div>`).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">💼 Sponsors liés: <strong style="color:var(--accent2)">${fmt(sponsorsAmt)}</strong> &nbsp;·&nbsp; ${(ev.postes||[]).length} poste(s)</div>
+      <div class="event-actions">
+        <button class="btn btn-warn btn-sm" onclick="openEventModal(${ev.id})">✏ Modifier</button>
+        <button class="btn btn-danger btn-sm" onclick="askDelete('evenements',${ev.id},'${ev.nom.replace(/'/g,"\\'")}')">🗑 Supprimer</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openEventModal(id){
+  evTabIndex=0;
+  const ev=id?DB.evenements.find(e=>e.id===id):null;
+  tempPostes=ev?(ev.postes||[]).map(p=>({...p})):[];
+  set('modal-ev-title',ev?'Modifier l\'Événement':'Créer un Événement');
+  setVal('ev-id',ev?ev.id:'');setVal('ev-nom',ev?ev.nom:'');setVal('ev-date',ev?ev.date:today());
+  setVal('ev-lieu',ev?ev.lieu:'');setVal('ev-statut',ev?ev.statut:'Planifié');
+  setVal('np-label','');setVal('np-montant','');
+  renderPostesLibres();
+  switchTab(0);
+  document.getElementById('modal-event').classList.add('open');
+}
+
+function addPosteLibre(){
+  const label=getVal('np-label').trim(),montant=parseFloat(getVal('np-montant'))||0;
+  if(!label){showToast('Saisissez un nom de poste','danger');return;}
+  if(!montant){showToast('Montant invalide','danger');return;}
+  tempPostes.push({label,montant});
+  setVal('np-label','');setVal('np-montant','');
+  document.getElementById('np-label').focus();
+  renderPostesLibres();updateEventTotal();
+}
+
+function removePosteLibre(i){
+  tempPostes.splice(i,1);
+  renderPostesLibres();updateEventTotal();
+}
+
+function renderPostesLibres(){
+  const el=document.getElementById('postes-libres-list');
+  if(!el)return;
+  if(!tempPostes.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:10px 0;text-align:center;border:1px dashed rgba(79,142,247,.2);border-radius:8px;margin-bottom:6px">Aucun poste ajouté — utilisez le formulaire ci-dessous pour commencer.</div>';
+    return;
+  }
+  el.innerHTML=`<div style="margin-bottom:6px">
+    <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:8px;padding:5px 10px;margin-bottom:4px">
+      <span style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Poste</span>
+      <span style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)">Montant</span>
+      <span></span>
+    </div>
+    ${tempPostes.map((p,i)=>`<div class="poste-libre-item">
+      <input type="text" class="form-input" value="${p.label.replace(/"/g,'&quot;')}" onchange="tempPostes[${i}].label=this.value;updateEventTotal()" style="font-size:13px;padding:6px 10px">
+      <input type="number" class="form-input" value="${p.montant}" onchange="tempPostes[${i}].montant=parseFloat(this.value)||0;updateEventTotal()" style="font-size:13px;padding:6px 10px;font-family:'DM Mono',monospace">
+      <span class="poste-libre-del" onclick="removePosteLibre(${i})">×</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+function updateEventTotal(){
+  const total=tempPostes.reduce((s,p)=>s+(p.montant||0),0);
+  const el=document.getElementById('ev-total-display');
+  if(el)el.textContent=fmt(total);
+  const evId=parseInt(getVal('ev-id'))||0;
+  const sponsorsAmt=DB.sponsors.filter(s=>s.eventId===evId&&s.statut==='Confirmé').reduce((s,sp)=>s+sp.montant,0);
+  const solde=sponsorsAmt-total;
+  const sEl=document.getElementById('ev-solde-display');
+  if(sEl){sEl.textContent=(solde>=0?'+':'')+fmt(solde);sEl.style.color=solde>=0?'var(--accent2)':'var(--danger)';}
+}
+
+function switchTab(i){
+  if(i<0||i>1)return;
+  evTabIndex=i;
+  [0,1].forEach(j=>{
+    document.getElementById('ev-tab-'+j).style.display=j===i?'block':'none';
+    document.querySelectorAll('#event-tabs .tab-btn')[j].classList.toggle('active',j===i);
+  });
+  document.getElementById('ev-prev-btn').style.display=i>0?'':'none';
+  document.getElementById('ev-next-btn').style.display=i<1?'':'none';
+  document.getElementById('ev-save-btn').style.display=i===1?'':'none';
+  if(i===1){renderPostesLibres();updateEventTotal();}
+}
+
+function saveEvent(){
+  const id=parseInt(getVal('ev-id'))||0;
+  const obj={id:id||DB.nextId.evenements++,nom:getVal('ev-nom'),date:getVal('ev-date'),
+    lieu:getVal('ev-lieu'),statut:getVal('ev-statut'),
+    postes:[...tempPostes.map(p=>({label:p.label.trim()||'Poste sans nom',montant:p.montant||0}))]};
+  if(!obj.nom){showToast('Nom de l\'événement requis','danger');return;}
+  if(id){const i=DB.evenements.findIndex(e=>e.id===id);DB.evenements[i]=obj;}else DB.evenements.push(obj);
+  closeModal('modal-event');renderAll();showToast(id?'Événement modifié !':'Événement créé !','success');
+}
+
+// =====================
+// SPONSORS
+// =====================
+function renderSponsors(){
+  const confirmed=DB.sponsors.filter(s=>s.statut==='Confirmé');
+  set('sp-confirmed',confirmed.length);
+  set('sp-negociation',DB.sponsors.filter(s=>s.statut==='En négociation').length);
+  set('sp-total',fmt(confirmed.reduce((s,sp)=>s+sp.montant,0)));
+  document.getElementById('sponsors-tbody').innerHTML=DB.sponsors.map(s=>{
+    const ev=DB.evenements.find(e=>e.id===s.eventId);
+    return `<tr>
+      <td><strong>${s.entreprise}</strong></td><td>${s.responsable}</td>
+      <td class="mono" style="color:var(--muted)">${s.contact||'—'}</td>
+      <td class="mono" style="color:${s.statut==='Confirmé'?'var(--accent2)':'var(--muted)'}">${s.montant?fmt(s.montant):'—'}</td>
+      <td>${ev?ev.nom:'—'}</td>
+      <td><span class="badge badge-${s.statut==='Confirmé'?'confirmed':'negociation'}">${s.statut==='Confirmé'?'✓ Confirmé':'⏳ Négociation'}</span></td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-warn btn-sm" onclick="openModal('modal-sponsor',${s.id})">✏</button>
+        <button class="btn btn-danger btn-sm" onclick="askDelete('sponsors',${s.id},'${s.entreprise.replace(/'/g,"\\'")}')">🗑</button>
+      </div></td></tr>`;
+  }).join('');
+}
+function saveSponsor(){
+  const id=parseInt(getVal('sp-id'))||0;
+  const obj={id:id||DB.nextId.sponsors++,entreprise:getVal('sp-entreprise'),responsable:getVal('sp-responsable'),
+    contact:getVal('sp-contact'),montant:parseFloat(getVal('sp-montant'))||0,
+    eventId:parseInt(getVal('sp-event'))||null,statut:getVal('sp-statut')};
+  if(!obj.entreprise){showToast('Nom entreprise requis','danger');return;}
+  if(id){const i=DB.sponsors.findIndex(s=>s.id===id);DB.sponsors[i]=obj;}else DB.sponsors.push(obj);
+  closeModal('modal-sponsor');renderAll();showToast(id?'Sponsor modifié !':'Sponsor ajouté !','success');
+}
+
+// =====================
+// DELETE
+// =====================
+function askDelete(type,id,label){
+  deleteTarget={type,id};
+  document.getElementById('confirm-msg').textContent=`Supprimer "${label}" ? Cette action est irréversible.`;
+  document.getElementById('modal-confirm').classList.add('open');
+}
+function confirmDelete(){
+  DB[deleteTarget.type]=DB[deleteTarget.type].filter(x=>x.id!==deleteTarget.id);
+  closeModal('modal-confirm');renderAll();showToast('Élément supprimé.','danger');
+}
+
+// =====================
+// UTILS
+// =====================
+function fmt(n){return Number(n).toLocaleString('fr-DZ')+' DH';}
+function set(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
+function setVal(id,val){const el=document.getElementById(id);if(el)el.value=val;}
+function getVal(id){const el=document.getElementById(id);return el?el.value:'';}
+function today(){return new Date().toISOString().slice(0,10);}
+function showToast(msg,type='success'){
+  const t=document.createElement('div');t.className=`toast ${type}`;
+  t.innerHTML=(type==='success'?'✓':'⚠')+' '+msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
+}
+
+renderAll();
+</script>
+</body>
+</html>
